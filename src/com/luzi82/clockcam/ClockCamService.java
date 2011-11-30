@@ -79,6 +79,10 @@ public class ClockCamService extends Service {
 
 	public synchronized void startCam() {
 		ClockCamActivity.d("startCam");
+		if (mRunCamera == true) {
+			return;
+		}
+		ClockCamActivity.d("startCam2");
 		mCamera = Camera.open();
 		mRunCamera = true;
 		mWakeLock.acquire();
@@ -87,6 +91,10 @@ public class ClockCamService extends Service {
 
 	public synchronized void stopCam() {
 		ClockCamActivity.d("stopCam");
+		if (mRunCamera == false) {
+			return;
+		}
+		ClockCamActivity.d("stopCam2");
 		mRunCamera = false;
 		mWakeLock.release();
 		if (mNextTask != null) {
@@ -96,6 +104,10 @@ public class ClockCamService extends Service {
 		if (mCameraState == CameraState.PREVIEW) {
 			mNextTask = new StageEndTask();
 			mTimer.schedule(mNextTask, 0);
+		}else{
+			ClockCamActivity.d("mCamera.release();");
+			mCamera.release();
+			mCamera=null;
 		}
 	}
 
@@ -139,6 +151,7 @@ public class ClockCamService extends Service {
 		@Override
 		public void run() {
 			synchronized (ClockCamService.this) {
+				ClockCamActivity.d("StagePrepareTask");
 				mNextTask = null;
 				if (!mRunCamera)
 					return;
@@ -154,6 +167,7 @@ public class ClockCamService extends Service {
 		@Override
 		public void run() {
 			synchronized (ClockCamService.this) {
+				ClockCamActivity.d("StageShotTask");
 				mNextTask = null;
 				if (!mRunCamera)
 					return;
@@ -167,7 +181,9 @@ public class ClockCamService extends Service {
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 			synchronized (ClockCamService.this) {
+				ClockCamActivity.d("PictureCallback");
 				if (mRunCamera) {
+					ClockCamActivity.d(String.format("onPictureTaken %d", data.length));
 					// do sth good
 				}
 				mNextTask = new StageEndTask();
@@ -181,6 +197,7 @@ public class ClockCamService extends Service {
 		@Override
 		public void run() {
 			synchronized (ClockCamService.this) {
+				ClockCamActivity.d("StageEndTask");
 				mNextTask = null;
 				if (mCameraState != CameraState.STOP) {
 					mCamera.stopPreview();
@@ -188,6 +205,10 @@ public class ClockCamService extends Service {
 				}
 				if (mRunCamera) {
 					nextShot();
+				} else {
+					ClockCamActivity.d("mCamera.release();");
+					mCamera.release();
+					mCamera=null;
 				}
 			}
 		}
