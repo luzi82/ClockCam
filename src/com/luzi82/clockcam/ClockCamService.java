@@ -1,5 +1,11 @@
 package com.luzi82.clockcam;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,6 +30,7 @@ public class ClockCamService extends Service {
 	Timer mTimer;
 
 	long mNextShot = -1;
+	String mNextFilename = null;
 	// long mPeriod = 15 * MIN;
 	long mPeriod = 15 * SEC;
 	long mPrepareTime = 5 * SEC;
@@ -56,6 +63,9 @@ public class ClockCamService extends Service {
 		mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, ClockCamActivity.TAG);
 
 		mTimer = new Timer();
+
+		File f = new File("/mnt/sdcard/DCIM/ClockCam/");
+		f.mkdirs();
 
 		IntentFilter commandFilter = new IntentFilter();
 		commandFilter.addAction(START_CMD);
@@ -104,10 +114,10 @@ public class ClockCamService extends Service {
 		if (mCameraState == CameraState.PREVIEW) {
 			mNextTask = new StageEndTask();
 			mTimer.schedule(mNextTask, 0);
-		}else{
+		} else {
 			ClockCamActivity.d("mCamera.release();");
 			mCamera.release();
-			mCamera=null;
+			mCamera = null;
 		}
 	}
 
@@ -147,6 +157,8 @@ public class ClockCamService extends Service {
 
 	TimerTask mNextTask = null;
 
+	static final SimpleDateFormat FILE_FORMAT = new SimpleDateFormat("yyyyMMdd-HHmmss");
+
 	class StagePrepareTask extends TimerTask {
 		@Override
 		public void run() {
@@ -157,7 +169,9 @@ public class ClockCamService extends Service {
 					return;
 				mCamera.startPreview();
 				mNextTask = new StageShotTask();
-				mTimer.schedule(mNextTask, new Date(mNextShot));
+				Date nextShotDate = new Date(mNextShot);
+				mTimer.schedule(mNextTask, nextShotDate);
+				mNextFilename = "/mnt/sdcard/DCIM/ClockCam/" + FILE_FORMAT.format(nextShotDate) + ".jpg";
 				mCameraState = CameraState.PREVIEW;
 			}
 		}
@@ -184,7 +198,16 @@ public class ClockCamService extends Service {
 				ClockCamActivity.d("PictureCallback");
 				if (mRunCamera) {
 					ClockCamActivity.d(String.format("onPictureTaken %d", data.length));
-					// do sth good
+					try {
+						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(mNextFilename));
+						bos.write(data);
+						bos.flush();
+						bos.close();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 				mNextTask = new StageEndTask();
 				mTimer.schedule(mNextTask, 0);
@@ -208,7 +231,7 @@ public class ClockCamService extends Service {
 				} else {
 					ClockCamActivity.d("mCamera.release();");
 					mCamera.release();
-					mCamera=null;
+					mCamera = null;
 				}
 			}
 		}
