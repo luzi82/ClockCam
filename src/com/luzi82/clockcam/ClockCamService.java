@@ -24,6 +24,7 @@ public class ClockCamService extends Service {
 
 	PowerManager mPowerManager;
 	PowerManager.WakeLock mWakeLock;
+	FtpManager mFtpManager;
 
 	Camera mCamera;
 
@@ -37,6 +38,7 @@ public class ClockCamService extends Service {
 
 	public static final String START_CMD = "com.luzi82.clockcam.start";
 	public static final String STOP_CMD = "com.luzi82.clockcam.stop";
+	public static final String LOCAL_PATH = "/mnt/sdcard/DCIM/ClockCam/";
 
 	private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
 		@Override
@@ -45,7 +47,11 @@ public class ClockCamService extends Service {
 			String action = intent.getAction();
 			if (action == null) {
 			} else if (action.equals(START_CMD)) {
-				startCam();
+				try {
+					startCam();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			} else if (action.equals(STOP_CMD)) {
 				stopCam();
 			}
@@ -59,12 +65,13 @@ public class ClockCamService extends Service {
 
 	@Override
 	public void onCreate() {
+		ClockCamActivity.d("onDestroy");
 		mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, ClockCamActivity.TAG);
 
 		mTimer = new Timer();
 
-		File f = new File("/mnt/sdcard/DCIM/ClockCam/");
+		File f = new File(LOCAL_PATH);
 		f.mkdirs();
 
 		IntentFilter commandFilter = new IntentFilter();
@@ -76,6 +83,7 @@ public class ClockCamService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		ClockCamActivity.d("onDestroy");
 		if (mTimer != null) {
 			mTimer.cancel();
 		}
@@ -87,15 +95,26 @@ public class ClockCamService extends Service {
 
 	boolean mRunCamera = false;
 
-	public synchronized void startCam() {
+	public synchronized void startCam() throws IOException {
 		ClockCamActivity.d("startCam");
 		if (mRunCamera == true) {
 			return;
 		}
 		ClockCamActivity.d("startCam2");
+
+		ClockCamConfig conf = ClockCamConfig.load("/mnt/sdcard/clockcam.conf");
+
 		mCamera = Camera.open();
 		mRunCamera = true;
 		mWakeLock.acquire();
+
+		Camera.Parameters param = mCamera.getParameters();
+		param.setPictureSize(1024, 768);
+		mCamera.setParameters(param);
+
+		mFtpManager = new FtpManager(conf.mServer, conf.mUsername, conf.mPassword, conf.mRemoteDir, LOCAL_PATH);
+		mFtpManager.start();
+
 		nextShot();
 	}
 
@@ -118,6 +137,10 @@ public class ClockCamService extends Service {
 			ClockCamActivity.d("mCamera.release();");
 			mCamera.release();
 			mCamera = null;
+		}
+		if (mFtpManager != null) {
+			mFtpManager.stopLater();
+			mFtpManager = null;
 		}
 	}
 
