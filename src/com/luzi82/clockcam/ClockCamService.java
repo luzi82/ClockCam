@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -118,6 +120,8 @@ public class ClockCamService extends Service {
 
 		ClockCamConfig conf = ClockCamConfig.load("/mnt/sdcard/clockcam.conf");
 
+		startForeground0();
+
 		mCamera = Camera.open();
 		mRunCamera = true;
 		mWakeLock.acquire();
@@ -158,6 +162,7 @@ public class ClockCamService extends Service {
 			mFtpManager.stopLater();
 			mFtpManager = null;
 		}
+		stopForeground0();
 	}
 
 	enum CameraState {
@@ -278,5 +283,16 @@ public class ClockCamService extends Service {
 
 	static long SEC = 1000;
 	static long MIN = 60 * SEC;
+
+	void startForeground0() {
+		Notification notification = new Notification(R.drawable.ic_launcher, "Clock Cam", System.currentTimeMillis());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, ClockCamActivity.class), 0);
+		notification.setLatestEventInfo(this, "Clock Cam", "Clock Cam", contentIntent);
+		startForeground(100, notification);
+	}
+
+	void stopForeground0() {
+		stopForeground(true);
+	}
 
 }
