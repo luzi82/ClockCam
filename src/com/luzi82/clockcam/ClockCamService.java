@@ -17,6 +17,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
 import android.os.IBinder;
 import android.os.PowerManager;
 
@@ -25,6 +27,8 @@ public class ClockCamService extends Service {
 	PowerManager mPowerManager;
 	PowerManager.WakeLock mWakeLock;
 	FtpManager mFtpManager;
+	WifiManager mWifiManager;
+	WifiLock mWifiLock;
 
 	Camera mCamera;
 
@@ -68,6 +72,10 @@ public class ClockCamService extends Service {
 		ClockCamActivity.d("onDestroy");
 		mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, ClockCamActivity.TAG);
+		mWakeLock.setReferenceCounted(false);
+		mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+		mWifiLock = mWifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, ClockCamActivity.TAG);
+		mWifiLock.setReferenceCounted(false);
 
 		mTimer = new Timer();
 
@@ -90,6 +98,12 @@ public class ClockCamService extends Service {
 		if (mCamera != null) {
 			mCamera.release();
 		}
+		if (mWakeLock != null) {
+			mWakeLock.release();
+		}
+		if (mWifiLock != null) {
+			mWifiLock.release();
+		}
 		unregisterReceiver(mIntentReceiver);
 	}
 
@@ -107,6 +121,7 @@ public class ClockCamService extends Service {
 		mCamera = Camera.open();
 		mRunCamera = true;
 		mWakeLock.acquire();
+		mWifiLock.acquire();
 
 		Camera.Parameters param = mCamera.getParameters();
 		param.setPictureSize(1024, 768);
@@ -126,6 +141,7 @@ public class ClockCamService extends Service {
 		ClockCamActivity.d("stopCam2");
 		mRunCamera = false;
 		mWakeLock.release();
+		mWifiLock.release();
 		if (mNextTask != null) {
 			mNextTask.cancel();
 			mNextTask = null;
