@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.Arrays;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -69,6 +70,7 @@ public class FtpManager extends Thread {
 					}
 					if (fileList == null)
 						continue;
+					Arrays.sort(fileList);
 					updateWatchdogTimer();
 					for (File f : fileList) {
 						long now = System.currentTimeMillis();
