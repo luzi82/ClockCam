@@ -49,7 +49,7 @@ public class CameraInfo implements Serializable {
 	public boolean mSmoothZoomSupported;
 	public boolean mZoomSupported;
 
-	public boolean mValid;
+	public boolean mValid=false;
 
 	public static CameraInfo readDefault(Context aContext) {
 		int version = getVersion(aContext);
