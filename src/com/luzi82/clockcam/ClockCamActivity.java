@@ -1,7 +1,10 @@
 package com.luzi82.clockcam;
 
+import java.io.IOException;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,10 +17,14 @@ public class ClockCamActivity extends Activity {
 
 	public static final String TAG = "ClockCam";
 
+	public CameraInfo mCameraInfo = null;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		// UI
 		setContentView(R.layout.main);
 
 		Button startButton = (Button) findViewById(R.id.startButton);
@@ -35,6 +42,25 @@ public class ClockCamActivity extends Activity {
 				serviceStop(v);
 			}
 		});
+
+		// init mCameraInfo
+		if (mCameraInfo == null) {
+			mCameraInfo = CameraInfo.readDefault(this);
+		}
+		if (mCameraInfo == null) {
+			Camera camera = Camera.open();
+			mCameraInfo = CameraInfo.readCamera(camera, CameraInfo.getVersion(this));
+			camera.release();
+			if (mCameraInfo != null) {
+				try {
+					mCameraInfo.writeDefault(this);
+				} catch (IOException e) {
+					throw new Error(e);
+				}
+			} else {
+				throw new Error("cannot get camera info");
+			}
+		}
 
 		startService(new Intent(this, ClockCamService.class));
 	}
@@ -103,7 +129,7 @@ public class ClockCamActivity extends Activity {
 	public void serviceStop(View aView) {
 		sendBroadcast(new Intent(ClockCamService.STOP_CMD));
 	}
-	
+
 	static int d(String msg) {
 		return Log.d(TAG, msg);
 	}
