@@ -2,10 +2,11 @@ package com.luzi82.clockcam;
 
 import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,9 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-public class ClockCamActivity extends Activity {
+public class ClockCamActivity extends PreferenceActivity {
 
 	public static final String TAG = "ClockCam";
+	public static final String PREFERENCE_NAME = "PREF";
 
 	public CameraInfo mCameraInfo = null;
 
@@ -24,24 +26,32 @@ public class ClockCamActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// UI
-		setContentView(R.layout.main);
-
-		Button startButton = (Button) findViewById(R.id.startButton);
-		startButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				serviceStart(v);
-			}
-		});
-
-		Button stopButton = (Button) findViewById(R.id.stopButton);
-		stopButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				serviceStop(v);
-			}
-		});
+		// Load the preferences from an XML resource
+		getPreferenceManager().setSharedPreferencesName(
+				PREFERENCE_NAME);
+		initValue(getPreferenceManager().getSharedPreferences());
+		addPreferencesFromResource(R.xml.preferences);
+//		getPreferenceManager().getSharedPreferences()
+//				.registerOnSharedPreferenceChangeListener(this);
+		
+//		// UI
+//		setContentView(R.layout.main);
+//
+//		Button startButton = (Button) findViewById(R.id.startButton);
+//		startButton.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				serviceStart(v);
+//			}
+//		});
+//
+//		Button stopButton = (Button) findViewById(R.id.stopButton);
+//		stopButton.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				serviceStop(v);
+//			}
+//		});
 
 		// init mCameraInfo
 		if (mCameraInfo == null) {
@@ -132,6 +142,11 @@ public class ClockCamActivity extends Activity {
 
 	static int d(String msg) {
 		return Log.d(TAG, msg);
+	}
+
+	static public void initValue(SharedPreferences sp) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.commit();
 	}
 
 }
