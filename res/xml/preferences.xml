@@ -4,16 +4,25 @@
     <PreferenceCategory android:title="@string/preference_setting_camera_title" >
 
         <CheckBoxPreference
-            android:key="preference_setting_status"
-            android:title="@string/preference_setting_status_title" />
+            android:key="preference_setting_mode"
+            android:title="@string/preference_setting_mode_title" />
 
-        <EditTextPreference
+        <ListPreference
+            android:dialogTitle="@string/preference_setting_timerperiod_title"
+            android:entries="@array/preference_setting_timerperiod_entries"
+            android:entryValues="@array/preference_setting_timerperiod_entryvalues"
             android:key="preference_setting_timerperiod"
             android:title="@string/preference_setting_timerperiod_title" />
 
-        <EditTextPreference
+        <ListPreference
+            android:dialogTitle="@string/preference_setting_photo_size_title"
             android:key="preference_setting_photo_size"
             android:title="@string/preference_setting_photo_size_title" />
+
+        <ListPreference
+            android:dialogTitle="@string/preference_setting_photo_whitebalance_title"
+            android:key="preference_setting_photo_whitebalance"
+            android:title="@string/preference_setting_photo_whitebalance_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/preference_setting_storage_title" >
@@ -48,6 +57,21 @@
         <EditTextPreference
             android:key="preference_setting_upload_ftp_remotepath"
             android:title="@string/preference_setting_upload_ftp_remotepath_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/preference_setting_upload_ntp_title" >
+
+        <CheckBoxPreference
+            android:key="preference_setting_upload_ntp_enable"
+            android:title="@string/preference_setting_upload_ntp_enable_title" />
+
+        <EditTextPreference
+            android:key="preference_setting_upload_ntp_domain"
+            android:title="@string/preference_setting_upload_ntp_domain_title" />
+
+        <EditTextPreference
+            android:key="preference_setting_upload_ntp_port"
+            android:title="@string/preference_setting_upload_ntp_port_title" />
     </PreferenceCategory>
 
 </PreferenceScreen>
