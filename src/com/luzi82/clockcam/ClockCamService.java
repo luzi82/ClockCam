@@ -17,6 +17,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.net.wifi.WifiManager;
@@ -31,6 +32,7 @@ public class ClockCamService extends Service {
 	FtpManager mFtpManager;
 	WifiManager mWifiManager;
 	WifiLock mWifiLock;
+	SharedPreferences mSharedPreferences;
 
 	Camera mCamera;
 
@@ -60,6 +62,9 @@ public class ClockCamService extends Service {
 				}
 			} else if (action.equals(STOP_CMD)) {
 				stopCam();
+			} else if (action.equals(SharedPreferenceChangeBoardcast.PREFERENCE_CMD)) {
+				String param = intent.getStringExtra(SharedPreferenceChangeBoardcast.PREFERENCE_CMD_KEY);
+				ClockCamActivity.d("PREFERENCE_CMD " + param);
 			}
 		}
 	};
@@ -84,9 +89,12 @@ public class ClockCamService extends Service {
 		File f = new File(LOCAL_PATH);
 		f.mkdirs();
 
+		mSharedPreferences = getSharedPreferences(ClockCamActivity.PREFERENCE_NAME, MODE_PRIVATE);
+
 		IntentFilter commandFilter = new IntentFilter();
 		commandFilter.addAction(START_CMD);
 		commandFilter.addAction(STOP_CMD);
+		commandFilter.addAction(SharedPreferenceChangeBoardcast.PREFERENCE_CMD);
 		registerReceiver(mIntentReceiver, commandFilter);
 	}
 
@@ -294,5 +302,27 @@ public class ClockCamService extends Service {
 	void stopForeground0() {
 		stopForeground(true);
 	}
+
+	// static class Ospcl implements OnSharedPreferenceChangeListener {
+	//
+	// WeakReference<ClockCamService> wp;
+	//
+	// public Ospcl(ClockCamService s) {
+	// wp = new WeakReference<ClockCamService>(s);
+	// }
+	//
+	// @Override
+	// public void onSharedPreferenceChanged(SharedPreferences
+	// sharedPreferences, String key) {
+	// ClockCamActivity.d("onSharedPreferenceChanged " + key);
+	// ClockCamService ccs = wp.get();
+	// if (ccs == null) {
+	// sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+	// ClockCamActivity.d("kill");
+	// return;
+	// }
+	// }
+	//
+	// }
 
 }

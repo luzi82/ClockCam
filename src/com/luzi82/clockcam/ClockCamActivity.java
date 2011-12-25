@@ -23,6 +23,8 @@ public class ClockCamActivity extends PreferenceActivity {
 	public static final String PREFERENCE_NAME = "PREF";
 
 	public CameraInfo mCameraInfo = null;
+	
+	public SharedPreferenceChangeBoardcast mSharedPreferenceChangeBoardcast=new SharedPreferenceChangeBoardcast(this);
 
 	/** Called when the activity is first created. */
 	@Override
@@ -89,18 +91,30 @@ public class ClockCamActivity extends PreferenceActivity {
 		if ((mCameraInfo.mSupportedWhiteBalance != null) && (mCameraInfo.mSupportedWhiteBalance.length > 1)) {
 			lp.setEntries(mCameraInfo.mSupportedWhiteBalance);
 			lp.setEntryValues(mCameraInfo.mSupportedWhiteBalance);
-		}else{
+		} else {
 			lp.setEnabled(false);
 			lp.setShouldDisableView(true);
 		}
 
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mSharedPreferenceChangeBoardcast.register(getPreferenceManager().getSharedPreferences());
 		startService(new Intent(this, ClockCamService.class));
+	}
+	
+	@Override
+	protected void onPause() {
+		mSharedPreferenceChangeBoardcast.unRegister();
+		super.onPause();
 	}
 
 	@Override
 	protected void onDestroy() {
+		mSharedPreferenceChangeBoardcast.unRegister();
 		super.onDestroy();
-
 	}
 
 	@Override
