@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -41,11 +42,9 @@ public class ClockCamService extends Service {
 	long mNextShot = -1;
 	String mNextFilename = null;
 	// long mPeriod = 15 * MIN;
-	long mPeriod = 15 * SEC;
+	long mPeriod;
 	long mPrepareTime = 5 * SEC;
 
-	public static final String START_CMD = "com.luzi82.clockcam.start";
-	public static final String STOP_CMD = "com.luzi82.clockcam.stop";
 	public static final String LOCAL_PATH = "/mnt/sdcard/DCIM/ClockCam/";
 
 	private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
@@ -54,17 +53,32 @@ public class ClockCamService extends Service {
 			ClockCamActivity.d("onReceive");
 			String action = intent.getAction();
 			if (action == null) {
-			} else if (action.equals(START_CMD)) {
-				try {
-					startCam();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			} else if (action.equals(STOP_CMD)) {
-				stopCam();
 			} else if (action.equals(SharedPreferenceChangeBoardcast.PREFERENCE_CMD)) {
 				String param = intent.getStringExtra(SharedPreferenceChangeBoardcast.PREFERENCE_CMD_KEY);
 				ClockCamActivity.d("PREFERENCE_CMD " + param);
+				if (param == null) {
+				} else if (param.equals("preference_setting_mode")) {
+					boolean on = mSharedPreferences.getBoolean("preference_setting_mode", false);
+					if (on) {
+						startCam();
+					} else {
+						stopCam();
+					}
+				} else if (param.equals("preference_setting_photo_size") || param.equals("preference_setting_photo_whitebalance")) {
+					if (mRunCamera) {
+						setCameraParameters();
+					}
+				} else if (param.equals("preference_setting_timerperiod")) {
+					if (mRunCamera) {
+						synchronized (ClockCamService.this) {
+							if (mNextTask != null) {
+								mNextTask.cancel();
+								mNextTask = null;
+							}
+							nextShot();
+						}
+					}
+				}
 			}
 		}
 	};
@@ -92,8 +106,6 @@ public class ClockCamService extends Service {
 		mSharedPreferences = getSharedPreferences(ClockCamActivity.PREFERENCE_NAME, MODE_PRIVATE);
 
 		IntentFilter commandFilter = new IntentFilter();
-		commandFilter.addAction(START_CMD);
-		commandFilter.addAction(STOP_CMD);
 		commandFilter.addAction(SharedPreferenceChangeBoardcast.PREFERENCE_CMD);
 		registerReceiver(mIntentReceiver, commandFilter);
 	}
@@ -119,14 +131,12 @@ public class ClockCamService extends Service {
 
 	boolean mRunCamera = false;
 
-	public synchronized void startCam() throws IOException {
+	public synchronized void startCam() {
 		ClockCamActivity.d("startCam");
 		if (mRunCamera == true) {
 			return;
 		}
 		ClockCamActivity.d("startCam2");
-
-		ClockCamConfig conf = ClockCamConfig.load("/mnt/sdcard/clockcam.conf");
 
 		startForeground0();
 
@@ -135,12 +145,7 @@ public class ClockCamService extends Service {
 		mWakeLock.acquire();
 		mWifiLock.acquire();
 
-		Camera.Parameters param = mCamera.getParameters();
-		param.setPictureSize(1024, 768);
-		mCamera.setParameters(param);
-
-		mFtpManager = new FtpManager(conf.mServer, conf.mUsername, conf.mPassword, conf.mRemoteDir, LOCAL_PATH);
-		mFtpManager.start();
+		setCameraParameters();
 
 		nextShot();
 	}
@@ -166,10 +171,10 @@ public class ClockCamService extends Service {
 			mCamera.release();
 			mCamera = null;
 		}
-		if (mFtpManager != null) {
-			mFtpManager.stopLater();
-			mFtpManager = null;
-		}
+		// if (mFtpManager != null) {
+		// mFtpManager.stopLater();
+		// mFtpManager = null;
+		// }
 		stopForeground0();
 	}
 
@@ -179,29 +184,15 @@ public class ClockCamService extends Service {
 
 	CameraState mCameraState = CameraState.STOP;
 
-	// private final IBinder mBinder = new ServiceStub(this);
-	//
-	// static class ServiceStub extends IClockCamService.Stub {
-	// WeakReference<ClockCamService> mService;
-	//
-	// ServiceStub(ClockCamService aService) {
-	// mService = new WeakReference<ClockCamService>(aService);
-	// }
-	//
-	// @Override
-	// public void start() throws RemoteException {
-	// mService.get().startCam();
-	// }
-	//
-	// @Override
-	// public void stop() throws RemoteException {
-	// mService.get().stopCam();
-	// }
-	// }
-
 	synchronized void nextShot() {
 		if (!mRunCamera)
 			return;
+		String periodString = mSharedPreferences.getString("preference_setting_timerperiod", null);
+		if (periodString != null) {
+			mPeriod = Integer.parseInt(periodString) * SEC;
+		} else {
+			mPeriod = 60 * SEC;
+		}
 		mNextShot = (((System.currentTimeMillis()) / mPeriod) + 1) * mPeriod;
 		mNextTask = new StagePrepareTask();
 		mTimer.schedule(mNextTask, new Date(mNextShot - mPrepareTime));
@@ -303,26 +294,29 @@ public class ClockCamService extends Service {
 		stopForeground(true);
 	}
 
-	// static class Ospcl implements OnSharedPreferenceChangeListener {
-	//
-	// WeakReference<ClockCamService> wp;
-	//
-	// public Ospcl(ClockCamService s) {
-	// wp = new WeakReference<ClockCamService>(s);
-	// }
-	//
-	// @Override
-	// public void onSharedPreferenceChanged(SharedPreferences
-	// sharedPreferences, String key) {
-	// ClockCamActivity.d("onSharedPreferenceChanged " + key);
-	// ClockCamService ccs = wp.get();
-	// if (ccs == null) {
-	// sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-	// ClockCamActivity.d("kill");
-	// return;
-	// }
-	// }
-	//
-	// }
+	void setCameraParameters() {
+		if (mCamera == null)
+			return;
+		Camera.Parameters param = mCamera.getParameters();
+
+		String sizeParam = mSharedPreferences.getString("preference_setting_photo_size", null);
+		if (sizeParam != null) {
+			String[] sizeParam2 = sizeParam.split(Pattern.quote("x"));
+			if (sizeParam2.length == 2) {
+				int w = Integer.parseInt(sizeParam2[0]);
+				int h = Integer.parseInt(sizeParam2[1]);
+				if ((w > 0) && (h > 0)) {
+					param.setPictureSize(w, h);
+				}
+			}
+		}
+
+		String wbParam = mSharedPreferences.getString("preference_setting_photo_whitebalance", null);
+		if (wbParam != null) {
+			param.setWhiteBalance(wbParam);
+		}
+
+		mCamera.setParameters(param);
+	}
 
 }

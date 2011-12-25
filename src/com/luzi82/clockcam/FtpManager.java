@@ -92,8 +92,8 @@ public class FtpManager extends Thread {
 					}
 					updateWatchdogTimer();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 				doDisconnect();
 			}
 			if (!mShouldRun) {
@@ -102,7 +102,7 @@ public class FtpManager extends Thread {
 			synchronized (this) {
 				try {
 					wait(5000);
-				} catch (InterruptedException e) {
+				} catch (Throwable t) {
 				}
 			}
 		}
@@ -131,8 +131,8 @@ public class FtpManager extends Thread {
 		if (mFtp != null) {
 			try {
 				mFtp.disconnect();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 			mFtp = null;
 		}
@@ -190,7 +190,7 @@ public class FtpManager extends Thread {
 				synchronized (this) {
 					try {
 						wait(30000);
-					} catch (InterruptedException e) {
+					} catch (Throwable t) {
 					}
 				}
 				if (!mShouldRun) {
@@ -200,7 +200,7 @@ public class FtpManager extends Thread {
 				if (now > mWatchDogTime + 120000) {
 					ClockCamActivity.d("WatchDog timeout, disconnect");
 					doDisconnect();
-				}else{
+				} else {
 					ClockCamActivity.d("WatchDog pass");
 				}
 			}
