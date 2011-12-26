@@ -39,13 +39,13 @@ public class ClockCamService extends Service {
 
 	Timer mTimer;
 
+	String mSaveDirectory = null; // sync
+
 	long mNextShot = -1;
 	String mNextFilename = null;
 	// long mPeriod = 15 * MIN;
 	long mPeriod;
 	long mPrepareTime = 5 * SEC;
-
-	public static final String LOCAL_PATH = "/mnt/sdcard/DCIM/ClockCam/";
 
 	private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
 		@Override
@@ -78,6 +78,11 @@ public class ClockCamService extends Service {
 							nextShot();
 						}
 					}
+				} else if (param.equals("preference_setting_storage_path")) {
+					synchronized (ClockCamService.this) {
+						mSaveDirectory = mSharedPreferences.getString("preference_setting_storage_path", null);
+						mkdir(mSaveDirectory);
+					}
 				}
 			}
 		}
@@ -100,8 +105,8 @@ public class ClockCamService extends Service {
 
 		mTimer = new Timer();
 
-		File f = new File(LOCAL_PATH);
-		f.mkdirs();
+		// File f = new File(LOCAL_PATH);
+		// f.mkdirs();
 
 		mSharedPreferences = getSharedPreferences(ClockCamActivity.PREFERENCE_NAME, MODE_PRIVATE);
 
@@ -137,6 +142,9 @@ public class ClockCamService extends Service {
 			return;
 		}
 		ClockCamActivity.d("startCam2");
+
+		mSaveDirectory = mSharedPreferences.getString("preference_setting_storage_path", null);
+		mkdir(mSaveDirectory);
 
 		startForeground0();
 
@@ -214,7 +222,7 @@ public class ClockCamService extends Service {
 				mNextTask = new StageShotTask();
 				Date nextShotDate = new Date(mNextShot);
 				mTimer.schedule(mNextTask, nextShotDate);
-				mNextFilename = "/mnt/sdcard/DCIM/ClockCam/" + FILE_FORMAT.format(nextShotDate) + ".jpg";
+				mNextFilename = FILE_FORMAT.format(nextShotDate) + ".jpg";
 				mCameraState = CameraState.PREVIEW;
 			}
 		}
@@ -239,10 +247,10 @@ public class ClockCamService extends Service {
 		public void onPictureTaken(byte[] data, Camera camera) {
 			synchronized (ClockCamService.this) {
 				ClockCamActivity.d("PictureCallback");
-				if (mRunCamera) {
+				if (mRunCamera && (mNextFilename != null)) {
 					ClockCamActivity.d(String.format("onPictureTaken %d", data.length));
 					try {
-						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(mNextFilename));
+						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(mSaveDirectory, mNextFilename)));
 						bos.write(data);
 						bos.flush();
 						bos.close();
@@ -252,6 +260,7 @@ public class ClockCamService extends Service {
 						e.printStackTrace();
 					}
 				}
+				mNextFilename = null;
 				mNextTask = new StageEndTask();
 				mTimer.schedule(mNextTask, 0);
 				mCameraState = CameraState.DONE;
@@ -317,6 +326,12 @@ public class ClockCamService extends Service {
 		}
 
 		mCamera.setParameters(param);
+	}
+
+	private static void mkdir(String aPath) {
+		if (aPath == null)
+			return;
+		new File(aPath).mkdirs();
 	}
 
 }

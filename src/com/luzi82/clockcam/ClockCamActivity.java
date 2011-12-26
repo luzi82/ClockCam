@@ -1,5 +1,6 @@
 package com.luzi82.clockcam;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
@@ -22,8 +24,8 @@ public class ClockCamActivity extends PreferenceActivity {
 	public static final String PREFERENCE_NAME = "PREF";
 
 	public CameraInfo mCameraInfo = null;
-	
-	public SharedPreferenceChangeBoardcast mSharedPreferenceChangeBoardcast=new SharedPreferenceChangeBoardcast(this);
+
+	public SharedPreferenceChangeBoardcast mSharedPreferenceChangeBoardcast = new SharedPreferenceChangeBoardcast(this);
 
 	/** Called when the activity is first created. */
 	@Override
@@ -75,14 +77,14 @@ public class ClockCamActivity extends PreferenceActivity {
 		}
 
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
 		mSharedPreferenceChangeBoardcast.register(getPreferenceManager().getSharedPreferences());
 		startService(new Intent(this, ClockCamService.class));
 	}
-	
+
 	@Override
 	protected void onPause() {
 		mSharedPreferenceChangeBoardcast.unRegister();
@@ -120,7 +122,13 @@ public class ClockCamActivity extends PreferenceActivity {
 	}
 
 	static public void initValue(SharedPreferences sp) {
+		String preference_setting_storage_path = sp.getString("preference_setting_storage_path", null);
+
 		SharedPreferences.Editor editor = sp.edit();
+		if (preference_setting_storage_path == null) {
+			File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "ClockCam/");
+			editor.putString("preference_setting_storage_path", f.getAbsolutePath());
+		}
 		editor.commit();
 	}
 
