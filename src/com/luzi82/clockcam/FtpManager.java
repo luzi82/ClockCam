@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -14,7 +15,10 @@ public class FtpManager extends Thread {
 
 	public static final long UPLOAD_TIME_DELAY = 30000;
 
+	private static Object mStaticLock = new Object();
+
 	public final String mServer;
+	public final int mPort;
 	public final String mUsername;
 	public final String mPassword;
 	public final String mRemoteDirectory;
@@ -27,8 +31,9 @@ public class FtpManager extends Thread {
 	public long mWatchDogTime;
 	private WatchDog mWatchDog;
 
-	public FtpManager(String aServer, String aUsername, String aPassword, String aRemoteDirectory, String aLocalDirectory) {
+	public FtpManager(String aServer, int aPort, String aUsername, String aPassword, String aRemoteDirectory, String aLocalDirectory) {
 		mServer = aServer;
+		mPort = aPort;
 		mUsername = aUsername;
 		mPassword = aPassword;
 		mRemoteDirectory = aRemoteDirectory;
@@ -46,15 +51,17 @@ public class FtpManager extends Thread {
 			ClockCamActivity.d("ftp connect");
 			try {
 				doConnect();
-				while (mShouldRun) {
+				while (shouldRun()) {
 					// send file loop
 					ClockCamActivity.d("ftp send");
 					File[] fileList = null;
-					while (mShouldRun) {
+					while (shouldRun()) {
 						// check file loop
 						ClockCamActivity.d("ftp check");
 						updateWatchdogTimer();
-						fileList = localDir.listFiles();
+						synchronized (mStaticLock) {
+							fileList = localDir.listFiles();
+						}
 						if ((fileList != null) && (fileList.length > 0)) {
 							break;
 						}
@@ -65,7 +72,7 @@ public class FtpManager extends Thread {
 							}
 						}
 					}
-					if (!mShouldRun) {
+					if (!shouldRun()) {
 						break;
 					}
 					if (fileList == null)
@@ -73,15 +80,23 @@ public class FtpManager extends Thread {
 					Arrays.sort(fileList);
 					updateWatchdogTimer();
 					for (File f : fileList) {
+						if (!shouldRun()) {
+							break;
+						}
 						long now = System.currentTimeMillis();
 						long fTime = f.lastModified();
 						ClockCamActivity.d(String.format("ftp file %s", f.getName()));
 						if (now < fTime + UPLOAD_TIME_DELAY)
 							continue;
 						ClockCamActivity.d("ftp upload");
-						sendFile(f, mRemoteDirectory);
-						f.delete();
+						synchronized (mStaticLock) {
+							sendFile(f);
+							f.delete();
+						}
 						updateWatchdogTimer();
+					}
+					if (!shouldRun()) {
+						break;
 					}
 					updateWatchdogTimer();
 					synchronized (this) {
@@ -96,7 +111,7 @@ public class FtpManager extends Thread {
 				t.printStackTrace();
 				doDisconnect();
 			}
-			if (!mShouldRun) {
+			if (!shouldRun()) {
 				break;
 			}
 			synchronized (this) {
@@ -109,7 +124,11 @@ public class FtpManager extends Thread {
 		doDisconnect();
 	}
 
-	public void stopLater() {
+	private synchronized boolean shouldRun() {
+		return mShouldRun;
+	}
+
+	public synchronized void stopLater() {
 		mShouldRun = false;
 	}
 
@@ -119,7 +138,7 @@ public class FtpManager extends Thread {
 		ClockCamActivity.d(String.format("password %s", mPassword));
 		mFtp = new FTPClient();
 		// mFtp.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
-		mFtp.connect(mServer);
+		mFtp.connect(mServer, mPort);
 		mFtp.login(mUsername, mPassword);
 		mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 		// mFtp.enterLocalActiveMode();
@@ -146,18 +165,23 @@ public class FtpManager extends Thread {
 	// maintain();
 	// }
 
-	private void sendFile(File aFile, String aRemoteDirectory) throws IOException {
+	private void sendFile(File aFile) throws IOException {
 		if (mFtp == null) {
 			throw new IOException();
 		}
+		if (!aFile.exists()) {
+			return;
+		}
 		BufferedInputStream bis = null;
 		try {
-			String remotePath = aRemoteDirectory + "/" + aFile.getName();
+			String remotePath = mRemoteDirectory + "/" + aFile.getName();
 
-			boolean done;
+			boolean done = false;
 
-			mFtp.makeDirectory(mRemoteDirectory);
-			mFtp.changeWorkingDirectory(mRemoteDirectory);
+//			mFtp.makeDirectory(mRemoteDirectory);
+//			mFtp.changeWorkingDirectory(mRemoteDirectory);
+			mkdirs(mFtp, mRemoteDirectory);
+			ClockCamActivity.d(mRemoteDirectory);
 			ClockCamActivity.d(mFtp.printWorkingDirectory());
 
 			// done = mFtp.setFileType(FTPClient.BINARY_FILE_TYPE);
@@ -211,6 +235,21 @@ public class FtpManager extends Thread {
 		ClockCamActivity.d("updateWatchdogTimer");
 		mFtp.noop();
 		mWatchDogTime = System.currentTimeMillis();
+	}
+
+	private void mkdirs(FTPClient mFtpClient, String aPath) {
+		String[] p = aPath.split(Pattern.quote("/"));
+		String pp = "";
+		for (String pi : p) {
+			pp = pp + pi;
+			if (!pp.endsWith("/")) {
+				pp = pp + "/";
+			}
+			try {
+				mFtpClient.makeDirectory(pp);
+			} catch (IOException e) {
+			}
+		}
 	}
 
 }
