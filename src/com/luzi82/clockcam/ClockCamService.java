@@ -111,7 +111,7 @@ public class ClockCamService extends Service {
 
 		mTimeManager = new TimeManager(this);
 
-		mCameraManager = new CameraManager();
+		mCameraManager = new CameraManager(mTimeManager);
 
 		mSharedPreferences = getSharedPreferences(ClockCamActivity.PREFERENCE_NAME, MODE_PRIVATE);
 

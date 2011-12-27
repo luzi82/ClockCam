@@ -38,14 +38,18 @@ public class CameraManager {
 	CameraState mCameraState = CameraState.NULL;
 	boolean mShouldRunCamera = false;
 
+	TimeManager mTimeManager;
+
+	public CameraManager(TimeManager aTimeManager) {
+		mTimeManager = aTimeManager;
+	}
+
 	public synchronized void start() {
 		if (mShouldRunCamera)
 			return;
 		mShouldRunCamera = true;
 		if (mCameraState == CameraState.NULL) {
-			mNextTask = new StateCreateTimeout();
-			mTimer.schedule(mNextTask, 0);
-			mCameraState = CameraState.CREATE;
+			nextStateTask(CameraState.CREATE, new StateCreateTimeout(), 0);
 		}
 	}
 
@@ -64,9 +68,7 @@ public class CameraManager {
 
 	synchronized void beginWait() {
 		mNextShot = calNextShot();
-		mNextTask = new StateWaitTimeout();
-		mTimer.schedule(mNextTask, new Date(mNextShot - mPrepareTime));
-		mCameraState = CameraState.WAIT;
+		nextStateTask(CameraState.WAIT, new StateWaitTimeout(), (mNextShot - mPrepareTime) - mTimeManager.currentRealTime());
 	}
 
 	class StateCreateTimeout extends TimerTask {
@@ -95,11 +97,9 @@ public class CameraManager {
 					return;
 				mNextTask = null;
 				mCamera.startPreview();
-				mNextTask = new StatePreviewTimeout();
 				Date nextShotDate = new Date(mNextShot);
-				mTimer.schedule(mNextTask, nextShotDate);
 				mNextFilename = FILE_FORMAT.format(nextShotDate) + ".jpg";
-				mCameraState = CameraState.PREVIEW;
+				nextStateTask(CameraState.PREVIEW, new StatePreviewTimeout(), mNextShot - mTimeManager.currentRealTime());
 			}
 		}
 	}
@@ -137,9 +137,7 @@ public class CameraManager {
 					}
 				}
 				mNextFilename = null;
-				mNextTask = new StateDoneTimeout();
-				mTimer.schedule(mNextTask, 0);
-				mCameraState = CameraState.DONE;
+				nextStateTask(CameraState.DONE, new StateDoneTimeout(), 0);
 			}
 		}
 	};
@@ -222,7 +220,9 @@ public class CameraManager {
 	}
 
 	public synchronized long calNextShot() {
-		return ((System.currentTimeMillis() / mPeriod) + 1) * mPeriod;
+		// return ((System.currentTimeMillis() / mPeriod) + 1) * mPeriod;
+		return (((mTimeManager.currentRealTime() + 1000) / mPeriod) + 1) * mPeriod;
+		// 1000: torrent of NTP float
 	}
 
 	public synchronized void killCamera() {
@@ -232,6 +232,15 @@ public class CameraManager {
 			mCamera = null;
 		}
 		mCameraState = CameraState.NULL;
+	}
+
+	private synchronized void nextStateTask(CameraState aState, TimerTask aTimerTask, long aDelay) {
+		if (aDelay < 0)
+			aDelay = 0;
+		mNextTask = aTimerTask;
+		mTimer.schedule(mNextTask, aDelay);
+		mCameraState = aState;
+
 	}
 
 }
