@@ -26,6 +26,7 @@ public class ClockCamActivity extends PreferenceActivity {
 	public CameraInfo mCameraInfo = null;
 
 	public SharedPreferenceChangeBoardcast mSharedPreferenceChangeBoardcast = new SharedPreferenceChangeBoardcast(this);
+	private PreferenceSummaryUpdate mPreferenceSummaryUpdate = new PreferenceSummaryUpdate(this);
 
 	/** Called when the activity is first created. */
 	@Override
@@ -76,24 +77,39 @@ public class ClockCamActivity extends PreferenceActivity {
 			lp.setShouldDisableView(true);
 		}
 
+		mPreferenceSummaryUpdate.addKey("preference_setting_timerperiod");
+		mPreferenceSummaryUpdate.addKey("preference_setting_photo_size");
+		mPreferenceSummaryUpdate.addKey("preference_setting_photo_whitebalance");
+		mPreferenceSummaryUpdate.addKey("preference_setting_storage_path");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ftp_domain");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ftp_port");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ftp_login");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ftp_remotepath");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ntp_domain");
+		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ntp_port");
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mSharedPreferenceChangeBoardcast.register(getPreferenceManager().getSharedPreferences());
+		SharedPreferences sp = getPreferenceManager().getSharedPreferences();
+		mSharedPreferenceChangeBoardcast.register(sp);
+		mPreferenceSummaryUpdate.register();
+		mPreferenceSummaryUpdate.updateAll();
 		startService(new Intent(this, ClockCamService.class));
 	}
 
 	@Override
 	protected void onPause() {
 		mSharedPreferenceChangeBoardcast.unRegister();
+		mPreferenceSummaryUpdate.unRegister();
 		super.onPause();
 	}
 
 	@Override
 	protected void onDestroy() {
 		mSharedPreferenceChangeBoardcast.unRegister();
+		mPreferenceSummaryUpdate.unRegister();
 		super.onDestroy();
 	}
 
@@ -131,5 +147,5 @@ public class ClockCamActivity extends PreferenceActivity {
 		}
 		editor.commit();
 	}
-
+	
 }
