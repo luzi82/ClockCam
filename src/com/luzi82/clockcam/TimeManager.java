@@ -74,6 +74,7 @@ public class TimeManager {
 		if (mTimer != null) {
 			mTimer.cancel();
 			mTimer = null;
+			mCurrentTT = null;
 		}
 		mOffset = 0;
 		mShouldRun = false;
@@ -124,8 +125,10 @@ public class TimeManager {
 					}
 					if (sample > 0) {
 						synchronized (TimeManager.this) {
-							mOffset = sum / sample;
-							ClockCamActivity.d("mOffset " + mOffset);
+							if (mCurrentTT == this) {
+								mOffset = sum / sample;
+								ClockCamActivity.d("mOffset " + mOffset);
+							}
 						}
 					}
 				}
@@ -133,6 +136,8 @@ public class TimeManager {
 			}
 		}
 	}
+
+	TT mCurrentTT = null;
 
 	private BroadcastReceiver mTimeChangeReceiver = new BroadcastReceiver() {
 		@Override
@@ -150,9 +155,11 @@ public class TimeManager {
 		if (mTimer != null) {
 			mTimer.cancel();
 			mTimer = null;
+			mCurrentTT = null;
 		}
+		mCurrentTT = new TT();
 		mTimer = new Timer();
-		mTimer.scheduleAtFixedRate(new TT(), 0, UPDATE_RATE);
+		mTimer.scheduleAtFixedRate(mCurrentTT, 0, UPDATE_RATE);
 	}
 
 	public synchronized void setDomain(String aDomain) {
