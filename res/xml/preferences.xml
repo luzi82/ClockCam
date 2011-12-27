@@ -8,6 +8,7 @@
             android:title="@string/preference_setting_mode_title" />
 
         <ListPreference
+            android:defaultValue="60"
             android:dialogTitle="@string/preference_setting_timerperiod_title"
             android:entries="@array/preference_setting_timerperiod_entries"
             android:entryValues="@array/preference_setting_timerperiod_entryvalues"
@@ -43,6 +44,7 @@
             android:title="@string/preference_setting_upload_ftp_domain_title" />
 
         <EditTextPreference
+            android:defaultValue="21"
             android:key="preference_setting_upload_ftp_port"
             android:title="@string/preference_setting_upload_ftp_port_title" />
 
@@ -70,6 +72,7 @@
             android:title="@string/preference_setting_upload_ntp_domain_title" />
 
         <EditTextPreference
+            android:defaultValue="123"
             android:key="preference_setting_upload_ntp_port"
             android:title="@string/preference_setting_upload_ntp_port_title" />
     </PreferenceCategory>

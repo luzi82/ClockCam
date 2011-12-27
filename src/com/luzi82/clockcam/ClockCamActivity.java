@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
@@ -35,7 +36,6 @@ public class ClockCamActivity extends PreferenceActivity {
 
 		// Load the preferences from an XML resource
 		getPreferenceManager().setSharedPreferencesName(PREFERENCE_NAME);
-		initValue(getPreferenceManager().getSharedPreferences());
 		addPreferencesFromResource(R.xml.preferences);
 
 		// init mCameraInfo
@@ -87,6 +87,9 @@ public class ClockCamActivity extends PreferenceActivity {
 		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ftp_remotepath");
 		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ntp_domain");
 		mPreferenceSummaryUpdate.addKey("preference_setting_upload_ntp_port");
+
+		// initValue(getPreferenceManager().getSharedPreferences());
+		setDefaultValue();
 	}
 
 	@Override
@@ -137,15 +140,21 @@ public class ClockCamActivity extends PreferenceActivity {
 		return Log.d(TAG, msg);
 	}
 
-	static public void initValue(SharedPreferences sp) {
-		String preference_setting_storage_path = sp.getString("preference_setting_storage_path", null);
-
-		SharedPreferences.Editor editor = sp.edit();
-		if (preference_setting_storage_path == null) {
-			File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "ClockCam/");
-			editor.putString("preference_setting_storage_path", f.getAbsolutePath());
+	public void setDefaultValue() {
+		ListPreference preference_setting_photo_size_p = (ListPreference) findPreference("preference_setting_photo_size");
+		if (preference_setting_photo_size_p.getValue() == null) {
+			preference_setting_photo_size_p.setValueIndex(0);
 		}
-		editor.commit();
+
+		ListPreference preference_setting_photo_whitebalance_p = (ListPreference) findPreference("preference_setting_photo_whitebalance");
+		if (preference_setting_photo_whitebalance_p.getValue() == null) {
+			preference_setting_photo_whitebalance_p.setValueIndex(0);
+		}
+
+		EditTextPreference preference_setting_storage_path_p = (EditTextPreference) findPreference("preference_setting_storage_path");
+		if (preference_setting_storage_path_p.getText() == null) {
+			File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "ClockCam/");
+			preference_setting_storage_path_p.setText(f.getAbsolutePath());
+		}
 	}
-	
 }
