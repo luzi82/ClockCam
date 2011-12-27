@@ -17,7 +17,7 @@ import android.hardware.Camera.Size;
 public class CameraManager {
 
 	Camera mCamera;
-	Timer mTimer=new Timer();
+	Timer mTimer = new Timer();
 
 	TimerTask mNextTask = null;
 
@@ -58,6 +58,7 @@ public class CameraManager {
 				mNextTask.cancel();
 				mNextTask = null;
 			}
+			killCamera();
 		}
 	}
 
@@ -209,12 +210,12 @@ public class CameraManager {
 			return;
 		}
 		mPeriod = aPeriod;
-		
-		if(mCameraState==CameraState.WAIT){
-			long nextShot=calNextShot();
-			if(nextShot!=mNextShot){
+
+		if (mCameraState == CameraState.WAIT) {
+			long nextShot = calNextShot();
+			if (nextShot != mNextShot) {
 				mNextTask.cancel();
-				mNextTask=null;
+				mNextTask = null;
 				beginWait();
 			}
 		}
@@ -225,11 +226,11 @@ public class CameraManager {
 	}
 
 	public synchronized void killCamera() {
-		if (mCamera == null)
-			return;
-		mCamera.stopPreview();
-		mCamera.release();
-		mCamera = null;
+		if (mCamera != null) {
+			mCamera.stopPreview();
+			mCamera.release();
+			mCamera = null;
+		}
 		mCameraState = CameraState.NULL;
 	}
 
