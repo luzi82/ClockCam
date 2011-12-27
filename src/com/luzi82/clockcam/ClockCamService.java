@@ -1,17 +1,6 @@
 package com.luzi82.clockcam;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Pattern;
-
-import com.luzi82.clockcam.CameraManager.CameraParameter;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -21,12 +10,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.hardware.Camera;
-import android.hardware.Camera.PictureCallback;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.IBinder;
 import android.os.PowerManager;
+
+import com.luzi82.clockcam.CameraManager.CameraParameter;
 
 public class ClockCamService extends Service {
 
