@@ -96,6 +96,7 @@ public class CameraManager {
 				if (mNextTask != this)
 					return;
 				mNextTask = null;
+				applyCameraParameter();
 				mCamera.startPreview();
 				Date nextShotDate = new Date(mNextShot);
 				mNextFilename = FILE_FORMAT.format(nextShotDate) + ".jpg";
@@ -169,7 +170,7 @@ public class CameraManager {
 
 	public synchronized void setCameraParameter(CameraParameter aCameraParameter) {
 		mCameraParameter = aCameraParameter;
-		applyCameraParameter();
+		// applyCameraParameter();
 	}
 
 	private synchronized void applyCameraParameter() {
