@@ -26,6 +26,8 @@ public class ClockCamService extends Service {
 	WifiLock mWifiLock;
 	SharedPreferences mSharedPreferences;
 
+	TimeManager mTimeManager;
+
 	// Camera mCamera;
 	// Timer mTimer;
 
@@ -107,6 +109,8 @@ public class ClockCamService extends Service {
 		// File f = new File(LOCAL_PATH);
 		// f.mkdirs();
 
+		mTimeManager = new TimeManager(this);
+
 		mCameraManager = new CameraManager();
 
 		mSharedPreferences = getSharedPreferences(ClockCamActivity.PREFERENCE_NAME, MODE_PRIVATE);
@@ -135,6 +139,9 @@ public class ClockCamService extends Service {
 		}
 		if (mWifiLock != null) {
 			mWifiLock.release();
+		}
+		if (mTimeManager != null) {
+			mTimeManager.close();
 		}
 		unregisterReceiver(mIntentReceiver);
 	}
@@ -436,6 +443,14 @@ public class ClockCamService extends Service {
 				mFtpManager = null;
 			}
 		}
+
+		if (preference.preference_setting_upload_ntp_enable) {
+			mTimeManager.start();
+		} else {
+			mTimeManager.stop();
+		}
+		mTimeManager.setDomain(preference.preference_setting_upload_ntp_domain);
+		mTimeManager.setPort(preference.preference_setting_upload_ntp_port);
 	}
 
 	private void fixPreference(ClockCamPreference preference) {
