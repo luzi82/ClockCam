@@ -96,27 +96,27 @@ public class CameraInfo implements Serializable {
 
 		ret.mDataVersion = aVersion;
 
-		ret.mExposureCompensationStep = parameters.getExposureCompensationStep();
-		ret.mMaxExposureCompensation = parameters.getMaxExposureCompensation();
-		ret.mMinExposureCompensation = parameters.getMinExposureCompensation();
+		try{ret.mExposureCompensationStep = parameters.getExposureCompensationStep();}catch(NullPointerException e){}
+		try{ret.mMaxExposureCompensation = parameters.getMaxExposureCompensation();}catch(NullPointerException e){}
+		try{ret.mMinExposureCompensation = parameters.getMinExposureCompensation();}catch(NullPointerException e){}
 
-		ret.mMaxZoom = parameters.getMaxZoom();
+		try{ret.mMaxZoom = parameters.getMaxZoom();}catch(NullPointerException e){}
 
-		ret.mSupportedAntibanding = toAry(parameters.getSupportedAntibanding());
-		ret.mSupportedColorEffects = toAry(parameters.getSupportedColorEffects());
-		ret.mSupportedFlashModes = toAry(parameters.getSupportedFlashModes());
-		ret.mSupportedFocusModes = toAry(parameters.getSupportedFocusModes());
-		ret.mSupportedJpegThumbnailSizes = toAry(parameters.getSupportedJpegThumbnailSizes());
-		ret.mSupportedPictureFormats = toAry(parameters.getSupportedPictureFormats());
-		ret.mSupportedPictureSizes = toAry(parameters.getSupportedPictureSizes());
-		ret.mSupportedPreviewFormats = toAry(parameters.getSupportedPreviewFormats());
-		ret.mSupportedPreviewFrameRates = toAry(parameters.getSupportedPreviewFrameRates());
-		ret.mSupportedPreviewSizes = toAry(parameters.getSupportedPreviewSizes());
-		ret.mSupportedSceneModes = toAry(parameters.getSupportedSceneModes());
-		ret.mSupportedWhiteBalance = toAry(parameters.getSupportedWhiteBalance());
-		ret.mZoomRatios = toAry(parameters.getZoomRatios());
-		ret.mSmoothZoomSupported = parameters.isSmoothZoomSupported();
-		ret.mZoomSupported = parameters.isZoomSupported();
+		try{ret.mSupportedAntibanding = toAry(parameters.getSupportedAntibanding());}catch(NullPointerException e){}
+		try{ret.mSupportedColorEffects = toAry(parameters.getSupportedColorEffects());}catch(NullPointerException e){}
+		try{ret.mSupportedFlashModes = toAry(parameters.getSupportedFlashModes());}catch(NullPointerException e){}
+		try{ret.mSupportedFocusModes = toAry(parameters.getSupportedFocusModes());}catch(NullPointerException e){}
+		try{ret.mSupportedJpegThumbnailSizes = toAry(parameters.getSupportedJpegThumbnailSizes());}catch(NullPointerException e){}
+		try{ret.mSupportedPictureFormats = toAry(parameters.getSupportedPictureFormats());}catch(NullPointerException e){}
+		try{ret.mSupportedPictureSizes = toAry(parameters.getSupportedPictureSizes());}catch(NullPointerException e){}
+		try{ret.mSupportedPreviewFormats = toAry(parameters.getSupportedPreviewFormats());}catch(NullPointerException e){}
+		try{ret.mSupportedPreviewFrameRates = toAry(parameters.getSupportedPreviewFrameRates());}catch(NullPointerException e){}
+		try{ret.mSupportedPreviewSizes = toAry(parameters.getSupportedPreviewSizes());}catch(NullPointerException e){}
+		try{ret.mSupportedSceneModes = toAry(parameters.getSupportedSceneModes());}catch(NullPointerException e){}
+		try{ret.mSupportedWhiteBalance = toAry(parameters.getSupportedWhiteBalance());}catch(NullPointerException e){}
+		try{ret.mZoomRatios = toAry(parameters.getZoomRatios());}catch(NullPointerException e){}
+		try{ret.mSmoothZoomSupported = parameters.isSmoothZoomSupported();}catch(NullPointerException e){}
+		try{ret.mZoomSupported = parameters.isZoomSupported();}catch(NullPointerException e){}
 
 		ret.mValid = true;
 
