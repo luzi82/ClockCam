@@ -49,7 +49,7 @@ public class ClockCamService extends Service {
 			String action = intent.getAction();
 			if (action == null) {
 			} else if (action.equals(SharedPreferenceChangeBoardcast.PREFERENCE_CMD)) {
-				onPreferenceChange(intent.getStringExtra(SharedPreferenceChangeBoardcast.PREFERENCE_CMD_KEY));
+				onPreferenceChange();
 				// String param =
 				// intent.getStringExtra(SharedPreferenceChangeBoardcast.PREFERENCE_CMD_KEY);
 				// ClockCamActivity.d("PREFERENCE_CMD " + param);
@@ -398,7 +398,7 @@ public class ClockCamService extends Service {
 		}
 	}
 
-	private void onPreferenceChange(String aKey) {
+	private void onPreferenceChange() {
 		ClockCamPreference preference = ClockCamPreference.get(mSharedPreferences);
 		fixPreference(preference);
 

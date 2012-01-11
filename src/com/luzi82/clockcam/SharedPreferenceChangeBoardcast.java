@@ -43,8 +43,11 @@ public class SharedPreferenceChangeBoardcast implements OnSharedPreferenceChange
 			unRegister();
 			return;
 		}
+		sendBroadcast(c);
+	}
+	
+	static public void sendBroadcast(Context c){
 		Intent intent = new Intent(PREFERENCE_CMD);
-		intent.putExtra(PREFERENCE_CMD_KEY, key);
 		c.sendBroadcast(intent);
 	}
 

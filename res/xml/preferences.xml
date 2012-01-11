@@ -46,7 +46,8 @@
         <EditTextPreference
             android:defaultValue="21"
             android:key="preference_setting_upload_ftp_port"
-            android:title="@string/preference_setting_upload_ftp_port_title" />
+            android:title="@string/preference_setting_upload_ftp_port_title"
+            android:inputType="number" />
 
         <EditTextPreference
             android:key="preference_setting_upload_ftp_login"
@@ -54,7 +55,8 @@
 
         <EditTextPreference
             android:key="preference_setting_upload_ftp_password"
-            android:title="@string/preference_setting_upload_ftp_password_title" />
+            android:title="@string/preference_setting_upload_ftp_password_title" 
+            android:inputType="textPassword" />
 
         <EditTextPreference
             android:key="preference_setting_upload_ftp_remotepath"
@@ -74,7 +76,8 @@
         <EditTextPreference
             android:defaultValue="123"
             android:key="preference_setting_upload_ntp_port"
-            android:title="@string/preference_setting_upload_ntp_port_title" />
+            android:title="@string/preference_setting_upload_ntp_port_title"
+            android:inputType="number" />
     </PreferenceCategory>
 
 </PreferenceScreen>

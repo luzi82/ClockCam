@@ -90,6 +90,8 @@ public class ClockCamActivity extends PreferenceActivity {
 
 		// initValue(getPreferenceManager().getSharedPreferences());
 		setDefaultValue();
+		
+		SharedPreferenceChangeBoardcast.sendBroadcast(this);
 	}
 
 	@Override
@@ -100,6 +102,8 @@ public class ClockCamActivity extends PreferenceActivity {
 		mPreferenceSummaryUpdate.register();
 		mPreferenceSummaryUpdate.updateAll();
 		startService(new Intent(this, ClockCamService.class));
+
+		SharedPreferenceChangeBoardcast.sendBroadcast(this);
 	}
 
 	@Override
