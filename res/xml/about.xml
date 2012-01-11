@@ -29,7 +29,7 @@
 		</Preference>
 		<Preference android:key="about_share" android:title="@string/about_share_title">
 			<intent android:action="android.intent.action.MAIN"
-				android:targetPackage="com.luzi82.iconmatch" android:targetClass="com.luzi82.iconmatch.QRCode" />
+				android:targetPackage="com.luzi82.clockcam" android:targetClass="com.luzi82.clockcam.QRCode" />
 		</Preference>
 		<Preference android:key="about_i18n_version"
 			android:title="@string/about_i18n_version_title"
