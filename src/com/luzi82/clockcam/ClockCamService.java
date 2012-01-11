@@ -39,6 +39,9 @@ public class ClockCamService extends Service {
 	// long mPeriod;
 	// long mPrepareTime = 5 * SEC;
 
+	boolean mWakeLockOn = false;
+	boolean mWifiLockOn = false;
+
 	private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -401,6 +404,16 @@ public class ClockCamService extends Service {
 
 		boolean shouldForground = preference.preference_setting_mode || preference.preference_setting_upload_ftp_enable || preference.preference_setting_upload_ntp_enable;
 		updateForeground(shouldForground);
+		if (shouldForground) {
+			if (!mWakeLockOn) {
+				mWakeLock.acquire();
+			}
+		} else {
+			if (mWakeLockOn) {
+				mWakeLock.release();
+			}
+		}
+		mWakeLockOn = shouldForground;
 
 		if (preference.preference_setting_mode || preference.preference_setting_upload_ftp_enable) {
 			mkdir(preference.preference_setting_storage_path);
@@ -437,11 +450,19 @@ public class ClockCamService extends Service {
 				mFtpManager = new FtpManager(preference.preference_setting_upload_ftp_domain, preference.preference_setting_upload_ftp_port, preference.preference_setting_upload_ftp_login, preference.preference_setting_upload_ftp_password, preference.preference_setting_upload_ftp_remotepath, preference.preference_setting_storage_path);
 				mFtpManager.start();
 			}
+			if (!mWifiLockOn) {
+				mWifiLock.acquire();
+			}
+			mWifiLockOn = true;
 		} else {
 			if (mFtpManager != null) {
 				mFtpManager.stopLater();
 				mFtpManager = null;
 			}
+			if (mWifiLockOn) {
+				mWifiLock.release();
+			}
+			mWifiLockOn = false;
 		}
 
 		if (preference.preference_setting_upload_ntp_enable) {
