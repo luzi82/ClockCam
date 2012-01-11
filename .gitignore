@@ -4,3 +4,4 @@ gen
 res/values/strings_auto.xml
 src2/i18n/.~lock.i18n.ods#
 
+/uninstall.sh
