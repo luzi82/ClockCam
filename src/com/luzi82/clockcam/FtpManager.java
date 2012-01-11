@@ -133,9 +133,9 @@ public class FtpManager extends Thread {
 	}
 
 	private synchronized void doConnect() throws SocketException, IOException {
-		ClockCamActivity.d(String.format("server %s", mServer));
-		ClockCamActivity.d(String.format("username %s", mUsername));
-		ClockCamActivity.d(String.format("password %s", mPassword));
+//		ClockCamActivity.d(String.format("server %s", mServer));
+//		ClockCamActivity.d(String.format("username %s", mUsername));
+//		ClockCamActivity.d(String.format("password %s", mPassword));
 		mFtp = new FTPClient();
 		// mFtp.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
 		mFtp.connect(mServer, mPort);
